@@ -207,6 +207,10 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;
 <div class="section active" id="sec-overview">
   <div class="stats" id="ov-stats"></div>
   <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin:12px 0 8px;padding-left:4px;">🏆 Jackpot Winners</h3>
+  <div class="game-tog" id="ov-tog">
+    <button class="act-pb" id="ov-pb" onclick="switchOVGame('pb')">Powerball</button>
+    <button id="ov-mm" onclick="switchOVGame('mm')">Mega Millions</button>
+  </div>
   <div id="ov-winners"></div>
 </div>
 
@@ -362,6 +366,11 @@ function go(s){
 }
 
 // ==== OVERVIEW ====
+let ovGame='pb';
+function switchOVGame(g){ovGame=g;
+  document.querySelectorAll('#ov-tog button').forEach(b=>b.className='');
+  document.getElementById('ov-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';
+  renderOV();}
 function renderOV(){
   const pbW=powerballData.filter(d=>d[6]),mmW=megaMillionsData.filter(d=>d[6]);
   const bpb=Math.max(...powerballData.map(d=>d[4])),bmm=Math.max(...megaMillionsData.map(d=>d[4]));
@@ -370,12 +379,14 @@ function renderOV(){
     <div class="stc"><div class="sl">Jackpots Won</div><div class="sv" style="color:var(--won)">${pbW.length+mmW.length}</div><div class="ss">PB:${pbW.length} MM:${mmW.length}</div></div>
     <div class="stc"><div class="sl">Biggest PB</div><div class="sv" style="color:var(--pb)">${fm(bpb)}</div></div>
     <div class="stc"><div class="sl">Biggest MM</div><div class="sv" style="color:var(--mm)">${fm(bmm)}</div></div>`;
-  const all=[...pbW.map(w=>({...w,g:'pb',d:w})),...mmW.map(w=>({...w,g:'mm',d:w}))];
-  // Sort by jackpot descending
-  const sorted=[...pbW.map(d=>({data:d,g:'pb'})),...mmW.map(d=>({data:d,g:'mm'}))].sort((a,b)=>b.data[4]-a.data[4]);
-  document.getElementById('ov-winners').innerHTML=sorted.map(({data:w,g})=>{
+  const isPB=ovGame==='pb';
+  const winners=isPB?pbW:mmW;
+  const g=isPB?'pb':'mm';
+  const sorted=[...winners].sort((a,b)=>b[4]-a[4]);
+  document.getElementById('ov-winners').innerHTML=sorted.length===0
+    ?'<div style="text-align:center;color:var(--t3);padding:20px;font-size:13px;">No jackpot winners found</div>'
+    :sorted.map(w=>{
     const gcls=g==='pb'?'wpb':'wmm';const gname=g==='pb'?'Powerball':'Mega Millions';
-    const bcls=g==='pb'?'bl-pb':'bl-mb';
     return`<div class="wcard"><div class="wcard-top"><span class="wcard-game ${gcls}">${gname}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--t2)">${fd(w[0])}</span></div>
     <div class="wcard-amt" style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${fm(w[4])}</div>
     <div class="wcard-det">Cash: ${fm(w[5])}<br>${w[1].join(' - ')} <strong style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${g==='pb'?'PB':'MB'} ${w[2]}</strong><br><span class="wcard-loc">${w[7]}</span></div></div>`;
