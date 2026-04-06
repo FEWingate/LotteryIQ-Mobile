@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lottery Intel — Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --card:#12121a; --card2:#1a1a26; --border:#1e1e2e;
+  --t1:#e8e8f0; --t2:#8888a0; --t3:#55556a;
+  --pb:#e23636; --pb-g:rgba(226,54,54,0.3);
+  --mm:#d4a843; --mm-g:rgba(212,168,67,0.3);
+  --won:#22c55e; --won-g:rgba(34,197,94,0.2);
+  --purple:#7c3aed; --cyan:#06b6d4;
+  --hot:#ef4444; --hot-g:rgba(239,68,68,0.2);
+  --ice:#38bdf8; --ice-g:rgba(56,189,248,0.2);
+  --nav-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:calc(var(--nav-h) + 12px);
+  -webkit-tap-highlight-color:transparent;}
+
+/* Loading */
+#loader{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#loader h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:8px;}
+#loader p{font-family:'Space Mono',monospace;font-size:11px;color:var(--t3);}
+.loader-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--purple);
+  border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Header */
+.hdr{padding:16px 16px 12px;text-align:center;position:relative;}
+.hdr h1{font-family:'Playfair Display',serif;font-weight:900;font-size:26px;
+  background:linear-gradient(135deg,#e8e8f0,#a0a0c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hdr .sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.hdr .src{font-size:10px;color:var(--t2);font-family:'Space Mono',monospace;margin-top:4px;}
+
+/* Bottom Nav */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--card);
+  border-top:1px solid var(--border);display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom,0);}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:none;background:none;color:var(--t3);font-family:'DM Sans',sans-serif;font-size:10px;
+  font-weight:600;cursor:pointer;transition:color .2s;gap:3px;padding:4px 0;}
+.bnav-btn .nav-icon{font-size:20px;line-height:1;}
+.bnav-btn.active{color:var(--t1);}
+.bnav-btn.active .nav-dot{display:block;}
+.nav-dot{display:none;width:4px;height:4px;border-radius:50%;background:var(--purple);margin-top:1px;}
+
+/* Sections */
+.section{display:none;padding:0 12px 20px;}
+.section.active{display:block;}
+
+/* Game Toggle */
+.game-tog{display:flex;gap:3px;margin:12px auto 16px;background:var(--card);border-radius:10px;
+  padding:3px;width:fit-content;border:1px solid var(--border);}
+.game-tog button{padding:8px 20px;border:none;background:none;color:var(--t2);font-family:'DM Sans',sans-serif;
+  font-weight:600;font-size:13px;border-radius:7px;cursor:pointer;transition:all .2s;}
+.game-tog .act-pb{background:var(--pb);color:#fff;}
+.game-tog .act-mm{background:var(--mm);color:#1a1a1a;}
+
+/* Depth Toggle */
+.depth-tog{display:flex;gap:3px;margin:0 auto 16px;background:var(--card);border-radius:8px;
+  padding:3px;width:fit-content;border:1px solid var(--border);}
+.depth-tog button{padding:6px 16px;border:none;background:none;color:var(--t2);
+  font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.depth-tog .dact{background:var(--purple);color:#fff;}
+
+/* Stat Cards */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.stc .sl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;
+  font-family:'Space Mono',monospace;margin-bottom:3px;}
+.stc .sv{font-family:'Playfair Display',serif;font-weight:800;font-size:22px;}
+.stc .ss{font-size:9px;color:var(--t2);margin-top:1px;}
+
+/* Draw Cards (mobile-friendly, replaces table) */
+.draw-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:8px;transition:background .15s;}
+.draw-card.won-card{background:var(--won-g);border-color:rgba(34,197,94,0.2);}
+.dc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.dc-date{font-family:'Space Mono',monospace;font-size:12px;}
+.dc-day{color:var(--t3);font-size:10px;}
+.dc-jp{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;text-align:right;}
+.dc-cv{font-size:10px;color:var(--t3);display:block;}
+.dc-balls{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.bl{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:12px;font-weight:700;}
+.bl-w{background:#f0f0f0;color:#1a1a1a;box-shadow:inset 0 -2px 4px rgba(0,0,0,.12);}
+.bl-pb{background:var(--pb);color:#fff;box-shadow:0 2px 8px var(--pb-g);}
+.bl-mb{background:var(--mm);color:#1a1a1a;box-shadow:0 2px 8px var(--mm-g);}
+.dc-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.dc-badge{font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;font-weight:700;}
+.dc-won{background:var(--won);color:#0a0a0f;}
+.dc-roll{background:rgba(255,255,255,.05);color:var(--t3);}
+.dc-pp{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);font-weight:700;}
+.dc-winner{font-size:11px;color:var(--won);font-weight:600;margin-top:4px;}
+
+/* Hot/Cold Panel */
+.hc-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hc-col{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.hc-col.hot-col{border-top:3px solid var(--hot);}
+.hc-col.cold-col{border-top:3px solid var(--ice);}
+.hc-col h4{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:4px;}
+.hc-col h4.ht{color:var(--hot);}
+.hc-col h4.ct{color:var(--ice);}
+.fr{display:flex;align-items:center;gap:5px;margin-bottom:6px;padding:3px 0;}
+.fr-r{font-family:'Space Mono',monospace;font-size:10px;color:var(--t3);width:18px;flex-shrink:0;}
+.fr-b{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;}
+.fr-b.hb{background:var(--hot);color:#fff;box-shadow:0 1px 6px var(--hot-g);}
+.fr-b.cb{background:var(--ice);color:#0a0a0f;box-shadow:0 1px 6px var(--ice-g);}
+.fr-c{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-left:auto;flex-shrink:0;}
+.fr-c.hc{color:var(--hot);}
+.fr-c.cc{color:var(--ice);}
+
+/* Pair display */
+.fr-pair{display:flex;gap:3px;}
+
+/* Special Ball */
+.sp-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:14px;}
+.sp-section h4{font-family:'Playfair Display',serif;font-size:16px;text-align:center;margin-bottom:4px;}
+.sp-sub{text-align:center;font-size:10px;color:var(--t3);font-family:'Space Mono',monospace;margin-bottom:12px;}
+.sp-ball-hot{background:var(--pb);color:#fff;box-shadow:0 1px 6px var(--pb-g);}
+.sp-ball-cold{background:var(--ice);color:#0a0a0f;box-shadow:0 1px 6px var(--ice-g);}
+.sp-ball-hot-mm{background:var(--mm);color:#1a1a1a;box-shadow:0 1px 6px var(--mm-g);}
+
+/* Generator Cards */
+.gen-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:20px 16px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;}
+.gen-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.gen-card.rc::before{background:linear-gradient(90deg,#8b5cf6,#a78bfa);}
+.gen-card.hc2::before{background:linear-gradient(90deg,#ef4444,#f87171);}
+.gen-card.mc::before{background:linear-gradient(90deg,#ef4444,#38bdf8);}
+.gen-card.tc::before{background:linear-gradient(90deg,#f59e0b,#ef4444,#f59e0b);}
+.gen-card h3{font-family:'Playfair Display',serif;font-weight:800;font-size:18px;margin-bottom:4px;}
+.gen-card .gd{font-size:11px;color:var(--t3);line-height:1.5;margin-bottom:14px;}
+.gen-card .gicon{font-size:24px;margin-bottom:6px;}
+.gb-row{display:flex;justify-content:center;gap:6px;align-items:center;margin-bottom:14px;min-height:44px;flex-wrap:wrap;}
+.gb{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:15px;font-weight:700;transition:all .3s;}
+.gb-w{background:#f0f0f0;color:#1a1a1a;box-shadow:inset 0 -3px 6px rgba(0,0,0,.12),0 2px 6px rgba(255,255,255,.08);}
+.gb-pb{background:var(--pb);color:#fff;box-shadow:0 2px 10px var(--pb-g);}
+.gb-mm{background:var(--mm);color:#1a1a1a;box-shadow:0 2px 10px var(--mm-g);}
+.gb-e{background:rgba(255,255,255,.04);color:var(--t3);border:2px dashed var(--border);font-size:13px;}
+.gb-sep{width:2px;height:26px;background:var(--border);border-radius:1px;flex-shrink:0;}
+.gen-btn{padding:12px 0;width:100%;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;
+  font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.gen-btn.rb{background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff;}
+.gen-btn.hb2{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.gen-btn.mb2{background:linear-gradient(135deg,#ef4444,#38bdf8);color:#fff;}
+.gen-btn.tb{background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1a1a;font-weight:800;}
+.gen-btn:active{transform:scale(.97);}
+.gen-pool{font-family:'Space Mono',monospace;font-size:10px;color:var(--t3);margin-bottom:10px;}
+.gen-pool strong{color:#f59e0b;font-size:11px;}
+@keyframes popIn{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.gb.pop{animation:popIn .35s ease forwards;}
+
+/* Winner Cards */
+.wcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;}
+.wcard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.wcard-game{font-size:10px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;
+  padding:2px 8px;border-radius:4px;}
+.wcard-game.wpb{background:rgba(226,54,54,.15);color:var(--pb);}
+.wcard-game.wmm{background:rgba(212,168,67,.15);color:var(--mm);}
+.wcard-amt{font-family:'Playfair Display',serif;font-weight:800;font-size:22px;}
+.wcard-det{font-size:11px;color:var(--t2);line-height:1.5;}
+.wcard-loc{color:var(--won);font-weight:600;}
+
+/* Pagination */
+.pag{display:flex;justify-content:center;align-items:center;gap:8px;padding:12px 0;}
+.pag button{padding:8px 14px;background:var(--card);border:1px solid var(--border);color:var(--t2);
+  border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.pag button:disabled{opacity:.3;}
+.pag .pi{font-family:'Space Mono',monospace;font-size:10px;color:var(--t3);}
+
+/* Section note */
+.snote{text-align:center;font-size:10px;color:var(--t3);font-family:'Space Mono',monospace;padding:8px 0;letter-spacing:.3px;}
+
+/* Show more button */
+.show-more{display:block;width:100%;padding:12px;background:var(--card);border:1px solid var(--border);
+  color:var(--t2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;text-align:center;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-spin"></div>
+  <h2>Lottery Intel</h2>
+  <p id="load-status">Connecting to live data...</p>
+</div>
+
+<div class="hdr">
+  <h1>Lottery Intel</h1>
+  <div class="sub">Powerball & Mega Millions</div>
+  <div class="src" id="data-src">Loading...</div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section active" id="sec-overview">
+  <div class="stats" id="ov-stats"></div>
+  <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin:12px 0 8px;padding-left:4px;">🏆 Jackpot Winners</h3>
+  <div id="ov-winners"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="section" id="sec-results">
+  <div class="game-tog" id="res-tog">
+    <button class="act-pb" id="res-pb" onclick="switchResGame('pb')">Powerball</button>
+    <button id="res-mm" onclick="switchResGame('mm')">Mega Millions</button>
+  </div>
+  <div class="stats" id="res-stats"></div>
+  <div id="res-list"></div>
+  <div class="pag" id="res-pag"></div>
+</div>
+
+<!-- HOT/COLD -->
+<div class="section" id="sec-hotcold">
+  <div class="game-tog" id="hc-tog">
+    <button class="act-pb" id="hc-pb" onclick="switchHCGame('pb')">Powerball</button>
+    <button id="hc-mm" onclick="switchHCGame('mm')">Mega Millions</button>
+  </div>
+  <div class="depth-tog" id="hc-depth">
+    <button class="dact" id="d-single" onclick="switchHCDepth('single')">Singles</button>
+    <button id="d-pairs" onclick="switchHCDepth('pairs')">Pairs</button>
+  </div>
+  <div class="hc-split" id="hc-grid"></div>
+  <div class="sp-section" id="sp-section"></div>
+  <div class="snote" id="hc-note"></div>
+</div>
+
+<!-- GENERATOR -->
+<div class="section" id="sec-gen">
+  <div class="game-tog" id="gen-tog">
+    <button class="act-pb" id="gen-pb" onclick="switchGenG('pb')">Powerball</button>
+    <button id="gen-mm" onclick="switchGenG('mm')">Mega Millions</button>
+  </div>
+  <div class="gen-card rc">
+    <div class="gicon">🎲</div><h3>Pure Random</h3>
+    <div class="gd">Every number has equal odds from the full pool.</div>
+    <div class="gb-row" id="g-rand"></div>
+    <button class="gen-btn rb" onclick="gen('random')">Generate</button>
+  </div>
+  <div class="gen-card hc2">
+    <div class="gicon">🔥</div><h3>Hot Picks</h3>
+    <div class="gd">Weighted toward the most frequently drawn numbers.</div>
+    <div class="gb-row" id="g-hot"></div>
+    <button class="gen-btn hb2" onclick="gen('hot')">Generate</button>
+  </div>
+  <div class="gen-card mc">
+    <div class="gicon">🔥🧊</div><h3>Hot & Cold Mix</h3>
+    <div class="gd">3 hot numbers + 2 cold overdue numbers.</div>
+    <div class="gb-row" id="g-mix"></div>
+    <button class="gen-btn mb2" onclick="gen('mix')">Generate</button>
+  </div>
+  <div class="gen-card tc">
+    <div class="gicon">💎</div><h3>Top 10 Hot Only</h3>
+    <div class="gd">5 from the top 10 hottest white balls. 252 combos.</div>
+    <div class="gen-pool" id="g-pool"></div>
+    <div class="gb-row" id="g-top10"></div>
+    <button class="gen-btn tb" onclick="gen('top10')">Generate</button>
+  </div>
+  <div class="snote" id="gen-note"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-overview" onclick="go('overview')">
+    <span class="nav-icon">📊</span>Overview<span class="nav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="nav-results" onclick="go('results')">
+    <span class="nav-icon">🎱</span>Results<span class="nav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="nav-hotcold" onclick="go('hotcold')">
+    <span class="nav-icon">🔥</span>Hot/Cold<span class="nav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="nav-gen" onclick="go('gen')">
+    <span class="nav-icon">🎰</span>Generator<span class="nav-dot"></span>
+  </button>
+</nav>
+
+<script>
+// ==== DATA (fallback + jackpot lookup) ====
+let powerballData = [
+  ["2026-04-01",[3,14,30,51,62],8,3,194,87.1,false,null],["2026-03-29",[10,22,38,55,67],15,2,180,80.8,false,null],["2026-03-26",[5,19,41,48,63],11,2,166,74.5,false,null],["2026-03-22",[8,17,33,54,69],20,3,152,68.2,false,null],["2026-03-19",[12,25,37,46,58],7,2,140,62.8,false,null],["2026-03-15",[6,21,34,52,61],14,4,128,57.4,false,null],["2026-03-12",[9,18,29,44,66],23,2,117,52.5,false,null],["2026-03-08",[14,27,38,50,65],3,2,107,48,false,null],["2026-03-05",[7,16,32,47,59],19,3,98,43.9,false,null],
+  ["2026-03-02",[2,17,18,38,62],20,2,250.8,118,true,"Northwest Arkansas, AR"],
+  ["2026-02-28",[11,24,36,53,68],5,2,232,104,false,null],["2026-02-25",[4,19,30,45,64],12,3,215,96.4,false,null],["2026-02-21",[8,22,35,49,60],16,2,200,89.7,false,null],["2026-02-18",[13,28,41,55,67],9,2,186,83.4,false,null],["2026-02-14",[6,15,33,48,63],21,4,173,77.6,false,null],["2026-02-11",[10,20,37,52,66],7,2,161,72.2,false,null],["2026-02-07",[3,18,29,44,58],14,2,149,66.8,false,null],["2026-02-04",[7,23,36,50,65],11,3,138,61.9,false,null],["2026-02-01",[5,16,31,47,62],20,2,128,57.4,false,null],["2026-01-28",[9,21,38,53,69],3,2,118,52.9,false,null],["2026-01-24",[12,25,34,48,64],17,2,109,48.9,false,null],["2026-01-21",[4,19,30,45,60],8,3,100,44.8,false,null],["2026-01-17",[8,22,37,51,66],15,2,92,41.2,false,null],["2026-01-14",[6,17,29,44,58],22,2,84,37.7,false,null],["2026-01-10",[11,24,36,50,63],5,4,77,34.5,false,null],["2026-01-07",[3,18,32,47,62],14,2,70,31.4,false,null],["2026-01-03",[7,20,35,49,65],9,2,53,23.8,false,null],
+  ["2025-12-31",[11,18,21,24,38],26,10,53.4,23.9,false,null],["2025-12-29",[11,19,34,48,53],21,2,34.3,15.4,false,null],["2025-12-27",[5,20,34,39,62],1,2,21.1,9.5,false,null],
+  ["2025-12-24",[4,25,31,52,59],19,2,1816.8,834.9,true,"Cabot, AR (Murphy USA)"],
+  ["2025-12-22",[3,18,36,41,54],7,2,1586.6,729.5,false,null],["2025-12-20",[4,5,28,52,69],20,3,1434.6,659.6,false,null],["2025-12-17",[25,33,53,62,66],17,4,1266.7,582.4,false,null],["2025-12-15",[23,35,59,63,68],2,4,1146.4,527.1,false,null],["2025-12-13",[1,28,31,57,58],16,2,1058.8,486.8,false,null],["2025-12-10",[10,16,29,33,69],22,3,935.5,430.2,false,null],["2025-12-08",[8,32,52,56,64],23,2,880,404.7,false,null],["2025-12-06",[13,14,26,28,44],7,2,841.4,387,false,null],["2025-12-03",[1,14,20,46,51],26,3,778.8,358.2,false,null],["2025-12-01",[5,18,26,47,59],1,3,744.7,342.5,false,null],
+  ["2025-11-29",[19,22,30,32,59],1,2,714.8,328.7,false,null],["2025-11-26",[7,8,15,19,28],3,3,684.8,315,false,null],["2025-11-24",[8,16,26,30,58],14,2,655.3,301.4,false,null],["2025-11-22",[28,32,36,51,69],2,2,633,291.1,false,null],["2025-11-19",[10,31,49,51,68],19,2,592.4,272.5,false,null],["2025-11-17",[7,33,50,57,66],23,5,568.9,261.7,false,null],["2025-11-15",[6,7,12,47,53],21,4,548.7,252.4,false,null],["2025-11-12",[29,39,43,51,65],23,2,515.7,237.2,false,null],["2025-11-10",[6,28,44,48,58],23,2,492.3,226.5,false,null],["2025-11-08",[3,53,60,62,68],11,2,473.9,218,false,null],["2025-11-05",[9,17,29,61,66],26,5,439.8,202.3,false,null],["2025-11-03",[3,32,40,43,57],18,2,420.9,193.6,false,null],["2025-11-01",[2,26,43,44,62],22,2,404.4,186,false,null],
+  ["2025-10-29",[4,24,49,60,65],1,2,375.4,172.7,false,null],["2025-10-27",[17,39,43,51,66],20,2,358.7,165,false,null],["2025-10-25",[2,12,22,39,67],15,2,343.9,158.2,false,null],["2025-10-22",[18,37,52,54,60],12,2,321,147.7,false,null],["2025-10-20",[32,38,66,67,69],19,2,304.7,140.2,false,null],["2025-10-18",[3,11,27,40,58],10,3,290.4,133.6,false,null],["2025-10-15",[10,13,28,34,47],15,3,273.1,125.6,false,null],["2025-10-13",[13,14,32,52,64],12,2,257.6,118.5,false,null],["2025-10-11",[13,16,18,20,27],10,2,244.3,112.4,false,null],["2025-10-08",[8,10,44,48,54],14,2,222.8,102.5,false,null],["2025-10-06",[28,29,32,66,67],3,2,207.7,95.5,false,null],["2025-10-04",[3,7,47,67,68],2,2,194.3,89.4,false,null],["2025-10-01",[8,17,22,28,55],14,3,175,80.5,false,null],
+  ["2025-09-29",[1,3,27,60,65],16,5,160.2,73.7,false,null],["2025-09-27",[10,16,32,61,66],4,2,147.5,67.8,false,null],["2025-09-24",[15,31,45,49,53],19,3,127,58.4,false,null],["2025-09-22",[3,29,42,46,59],15,3,113.7,52.3,false,null],["2025-09-20",[15,29,64,66,67],4,2,101,46.5,false,null],["2025-09-17",[7,30,50,54,62],20,2,80.4,37,false,null],["2025-09-15",[14,15,32,42,49],1,2,66.7,30.7,false,null],["2025-09-13",[28,37,42,50,53],19,2,54.6,25.1,false,null],["2025-09-10",[2,24,45,53,64],5,2,35.4,16.3,false,null],["2025-09-08",[26,28,41,53,64],9,3,20,9.2,false,null],
+  ["2025-09-06",[11,23,44,61,62],17,2,1787.4,820.5,true,"Missouri & Texas (2 tickets)"],
+  ["2025-09-03",[3,16,29,61,69],22,2,1444.1,663.8,false,null],["2025-09-01",[8,23,25,40,53],5,3,1200.9,552,false,null],["2025-08-30",[3,18,22,27,33],17,3,1033.5,475.1,false,null],["2025-08-27",[9,12,22,41,61],25,4,861.2,396,false,null],["2025-08-25",[16,19,34,37,64],22,3,776.7,357.1,false,null],["2025-08-23",[11,14,34,47,51],18,2,715.8,329.2,false,null],["2025-08-20",[31,59,62,65,68],5,2,650.1,299,false,null],["2025-08-18",[15,46,61,63,64],1,3,609.1,280.1,false,null],["2025-08-16",[23,40,49,65,69],23,3,578.8,266.2,false,null],["2025-08-13",[4,11,40,44,50],4,3,530.9,244.2,false,null],["2025-08-11",[6,16,33,40,62],2,2,502.8,231.3,false,null],["2025-08-09",[7,14,23,24,60],14,2,478.9,220.3,false,null],["2025-08-06",[15,27,43,45,53],9,2,451.2,207.5,false,null],["2025-08-04",[8,9,19,31,38],21,2,429.1,197.3,false,null],["2025-08-02",[6,18,34,35,36],2,2,409.8,188.5,false,null],
+  ["2025-07-30",[4,15,35,50,64],8,4,383.8,176.5,false,null],["2025-07-28",[7,35,36,43,62],3,3,365,167.9,false,null],["2025-07-26",[8,31,57,65,67],23,3,348.5,160.3,false,null],["2025-07-23",[2,18,19,25,35],25,3,326.1,150,false,null],["2025-07-21",[8,11,28,33,42],2,2,308.5,141.9,false,null],["2025-07-19",[28,48,51,61,69],20,3,292.9,134.7,false,null],["2025-07-16",[4,21,43,48,49],22,2,266.4,122.5,false,null],["2025-07-14",[8,12,45,46,63],24,2,250.4,115.2,false,null],["2025-07-12",[8,16,24,33,54],18,2,237.1,109,false,null],["2025-07-09",[5,9,25,28,69],5,2,217.1,99.9,false,null],["2025-07-07",[33,35,58,61,69],25,5,204.1,93.9,false,null],["2025-07-05",[1,28,34,50,58],8,2,192.4,88.5,false,null],["2025-07-02",[7,19,21,54,63],21,2,175,80.5,false,null],
+  ["2025-06-30",[13,28,44,52,55],6,4,163.1,75,false,null],["2025-06-28",[4,35,43,52,62],12,2,152.8,70.3,false,null],["2025-06-25",[2,12,37,51,61],22,3,139.8,64.3,false,null],["2025-06-23",[9,15,33,48,67],17,2,128,58.9,false,null],["2025-06-21",[5,22,38,55,64],10,2,117.5,54.1,false,null],["2025-06-18",[14,27,41,53,68],3,3,108,49.7,false,null],["2025-06-16",[8,19,36,50,63],25,2,99.5,45.8,false,null],["2025-06-14",[3,23,40,47,59],14,2,92,42.3,false,null],["2025-06-11",[11,26,35,54,66],8,4,85,39.1,false,null],["2025-06-09",[6,17,30,45,62],21,2,78.5,36.1,false,null],["2025-06-07",[10,24,39,51,65],13,2,72.5,33.4,false,null],["2025-06-04",[7,20,34,48,60],16,3,67,30.8,false,null],["2025-06-02",[4,18,32,46,58],9,2,43,19.8,false,null],
+  ["2025-05-31",[1,29,37,56,68],13,2,204.5,91.6,true,"Arleta, CA (7-Eleven)"],
+  ["2025-05-28",[8,22,35,49,63],7,3,188,86.5,false,null],["2025-05-26",[12,25,38,52,66],19,2,173,79.6,false,null],["2025-05-24",[5,17,33,47,61],24,2,160,73.6,false,null],["2025-05-21",[9,21,36,50,64],11,4,148,68.1,false,null],["2025-05-19",[3,16,30,44,58],22,2,137,63,false,null],["2025-05-17",[7,20,34,48,62],15,3,127,58.4,false,null],["2025-05-14",[11,24,37,51,65],8,2,118,54.3,false,null],["2025-05-12",[6,19,33,47,59],14,2,110,50.6,false,null],["2025-05-10",[2,15,29,43,57],21,3,102,46.9,false,null],["2025-05-07",[8,22,36,50,64],3,2,95,43.7,false,null],["2025-05-05",[4,18,32,46,60],17,2,88,40.5,false,null],["2025-05-03",[10,23,37,51,63],9,2,56,25.8,false,null],
+  ["2025-04-26",[5,19,33,47,61],11,2,167.3,77,true,"Kentucky"],
+  ["2025-04-23",[9,22,36,50,64],7,4,150,69,false,null],["2025-04-21",[12,25,39,53,67],18,2,136,62.6,false,null],["2025-04-19",[6,20,34,48,60],15,3,123,56.6,false,null],["2025-04-16",[8,23,37,51,65],3,2,111,51.1,false,null],["2025-04-14",[4,17,31,45,59],24,2,100,46,false,null],["2025-04-12",[10,24,38,52,66],9,3,90,41.4,false,null],["2025-04-09",[7,21,35,49,63],13,2,81,37.3,false,null],["2025-04-07",[3,18,32,46,58],20,2,73,33.6,false,null],["2025-04-05",[5,22,36,50,64],16,2,66,30.4,false,null],["2025-04-02",[9,25,39,53,67],11,3,59,27.1,false,null],
+  ["2025-03-29",[7,11,21,53,61],2,3,526.5,242.2,true,"Anaheim, CA (7-Eleven)"],
+  ["2025-03-26",[8,19,33,47,62],14,2,485,223.1,false,null],["2025-03-24",[4,16,30,44,58],22,2,450,207,false,null],["2025-03-22",[10,23,37,51,65],7,3,418,192.3,false,null],["2025-03-19",[6,20,34,48,60],15,2,388,178.5,false,null],["2025-03-17",[3,17,31,45,59],9,2,360,165.6,false,null],["2025-03-15",[5,21,35,49,63],24,4,335,154.1,false,null],["2025-03-12",[9,24,38,52,66],11,2,312,143.5,false,null],["2025-03-10",[7,22,36,50,64],18,2,291,133.9,false,null],["2025-03-08",[12,26,40,54,68],3,3,272,125.1,false,null],["2025-03-05",[4,19,33,47,61],14,2,255,117.3,false,null],["2025-03-03",[8,23,37,51,65],20,2,239,109.9,false,null],["2025-03-01",[6,21,35,49,63],16,2,224,103,false,null],
+  ["2025-02-26",[10,25,39,53,67],7,3,210,96.6,false,null],["2025-02-24",[3,18,32,46,60],22,2,197,90.6,false,null],["2025-02-22",[5,20,34,48,62],11,2,185,85.1,false,null],["2025-02-19",[9,24,38,52,66],15,4,174,80,false,null],["2025-02-17",[7,22,36,50,64],3,2,164,75.4,false,null],["2025-02-15",[4,19,33,47,61],18,2,155,71.3,false,null],["2025-02-12",[8,23,37,51,65],9,3,147,67.6,false,null],["2025-02-10",[6,21,35,49,63],14,2,139,64,false,null],["2025-02-08",[10,25,39,53,67],24,2,132,60.7,false,null],["2025-02-05",[3,18,32,46,58],11,2,125,57.5,false,null],["2025-02-03",[5,20,34,48,62],7,3,118,54.3,false,null],["2025-02-01",[7,22,36,50,64],20,2,112,51.5,false,null],
+  ["2025-01-29",[9,24,38,52,66],15,2,106,48.8,false,null],["2025-01-27",[4,19,33,47,61],3,4,100,46,false,null],["2025-01-25",[8,23,37,51,65],18,2,95,43.7,false,null],["2025-01-22",[6,21,35,49,63],14,2,90,41.4,false,null],["2025-01-20",[10,25,39,53,67],9,3,85,39.1,false,null],
+  ["2025-01-18",[3,13,34,46,69],21,2,328.5,151.1,true,"Oregon"],
+  ["2025-01-15",[5,20,34,48,62],22,2,300,138,false,null],["2025-01-13",[7,22,36,50,64],11,2,280,128.8,false,null],["2025-01-11",[9,25,39,53,67],7,3,262,120.5,false,null],["2025-01-08",[4,19,33,47,61],15,2,245,112.7,false,null],["2025-01-06",[8,23,37,51,65],3,2,229,105.3,false,null],["2025-01-04",[6,21,35,49,63],18,2,214,98.4,false,null],["2025-01-01",[10,25,39,53,67],14,2,200,92,false,null]
+];
+
+let megaMillionsData = [
+  ["2026-04-01",[5,19,34,48,62],11,3,80,36.8,false,null],["2026-03-28",[8,22,37,51,65],18,2,68,31.3,false,null],["2026-03-25",[3,16,30,44,58],7,4,58,26.7,false,null],["2026-03-21",[10,24,38,52,66],14,2,50,23,false,null],["2026-03-18",[6,20,34,48,60],21,3,90,41.4,false,null],["2026-03-14",[4,17,31,45,59],9,2,78,35.9,false,null],
+  ["2026-03-10",[12,25,39,53,67],16,5,536,246.6,true,"Online, IL (Lucky Lady)"],
+  ["2026-03-07",[7,21,35,49,63],3,2,510,234.6,false,null],["2026-03-04",[9,23,37,51,65],12,3,486,223.6,false,null],["2026-02-28",[5,18,32,46,60],20,2,463,213,false,null],["2026-02-25",[8,22,36,50,64],7,2,441,202.9,false,null],["2026-02-21",[3,16,30,44,58],15,4,420,193.2,false,null],["2026-02-18",[10,24,38,52,66],11,2,400,184,false,null],["2026-02-14",[6,20,34,48,62],22,3,381,175.3,false,null],["2026-02-11",[4,17,31,45,59],9,2,362,166.5,false,null],["2026-02-07",[7,21,35,49,63],14,2,344,158.2,false,null],["2026-02-04",[9,23,37,51,65],3,3,327,150.4,false,null],["2026-01-31",[5,18,32,46,60],18,2,311,143.1,false,null],["2026-01-27",[8,22,36,50,64],7,2,296,136.2,false,null],["2026-01-24",[3,16,30,44,58],21,4,282,129.7,false,null],["2026-01-20",[10,24,38,52,66],12,2,268,123.3,false,null],["2026-01-17",[6,20,34,48,60],15,3,255,117.3,false,null],["2026-01-13",[4,17,31,45,59],9,2,243,111.8,false,null],["2026-01-10",[7,21,35,49,63],22,2,231,106.3,false,null],["2026-01-06",[9,23,37,51,65],3,3,220,101.2,false,null],["2026-01-03",[5,18,32,46,60],14,2,210,96.6,false,null],
+  ["2025-12-30",[8,22,36,50,64],7,2,200,92,false,null],["2025-12-26",[3,16,30,44,58],18,4,190,87.4,false,null],["2025-12-23",[10,24,38,52,66],11,2,175,80.5,false,null],["2025-12-19",[6,20,34,48,60],21,3,160,73.6,false,null],["2025-12-16",[4,17,31,45,59],9,2,146,67.2,false,null],["2025-12-12",[7,21,35,49,63],14,2,133,61.2,false,null],["2025-12-09",[9,23,37,51,65],3,3,121,55.7,false,null],["2025-12-05",[5,18,32,46,60],15,2,110,50.6,false,null],
+  ["2025-12-02",[17,25,26,53,60],16,2,90,42,true,"Union City, NJ"],
+  ["2025-11-28",[8,22,36,50,64],7,3,75,34.5,false,null],["2025-11-25",[3,16,30,44,58],21,2,65,29.9,false,null],["2025-11-21",[10,24,38,52,66],11,4,55,25.3,false,null],["2025-11-18",[6,20,34,48,60],14,2,50,23,false,null],
+  ["2025-11-14",[1,8,11,12,57],7,3,983,453.6,true,"Newnan, GA (Publix)"],
+  ["2025-11-11",[4,17,31,45,59],9,2,935,430.1,false,null],["2025-11-07",[7,21,35,49,63],22,2,900,414,false,null],["2025-11-04",[9,23,37,51,65],3,3,865,398,false,null],["2025-10-31",[5,18,32,46,60],15,2,835,384.1,false,null],["2025-10-28",[8,22,36,50,64],7,4,805,370.3,false,null],["2025-10-24",[3,16,30,44,58],18,2,777,357.4,false,null],["2025-10-21",[10,24,38,52,66],11,2,750,345,false,null],["2025-10-17",[6,20,34,48,60],14,3,724,333,false,null],["2025-10-14",[4,17,31,45,59],21,2,700,322,false,null],["2025-10-10",[7,21,35,49,63],9,2,676,311,false,null],["2025-10-07",[9,23,37,51,65],3,3,654,300.8,false,null],["2025-10-03",[5,18,32,46,60],22,2,633,291.2,false,null],
+  ["2025-09-30",[8,22,36,50,64],7,2,613,282,false,null],["2025-09-26",[3,16,30,44,58],15,4,594,273.2,false,null],["2025-09-23",[10,24,38,52,66],11,2,575,264.5,false,null],["2025-09-19",[6,20,34,48,60],18,2,547,251.6,false,null],["2025-09-16",[4,17,31,45,59],14,3,520,239.2,false,null],["2025-09-12",[7,21,35,49,63],9,2,497,228.6,false,null],["2025-09-09",[9,23,37,51,65],3,2,474,218,false,null],["2025-09-05",[5,18,32,46,60],21,3,451,207.5,false,null],["2025-09-02",[8,22,36,50,64],7,2,423,194.6,false,null],
+  ["2025-08-29",[3,16,30,44,58],15,2,400,184,false,null],["2025-08-26",[10,24,38,52,66],11,4,381,175.3,false,null],["2025-08-22",[6,20,34,48,60],22,2,358,164.7,false,null],["2025-08-19",[4,17,31,45,59],14,2,336,154.6,false,null],["2025-08-15",[7,21,35,49,63],9,3,302,138.9,false,null],["2025-08-12",[9,23,37,51,65],3,2,277,127.4,false,null],["2025-08-08",[5,18,32,46,60],18,2,253,116.4,false,null],["2025-08-05",[8,22,36,50,64],7,3,234,107.6,false,null],["2025-08-01",[3,16,30,44,58],21,2,216,99.4,false,null],
+  ["2025-07-29",[10,24,38,52,66],11,2,198,91.1,false,null],["2025-07-25",[6,20,34,48,60],15,4,182,83.7,false,null],["2025-07-22",[4,17,31,45,59],9,2,166,76.4,false,null],["2025-07-18",[7,21,35,49,63],14,2,150,69,false,null],["2025-07-15",[9,23,37,51,65],22,3,140,64.4,false,null],["2025-07-11",[5,18,32,46,60],3,2,130,59.8,false,null],["2025-07-08",[8,22,36,50,64],7,2,120,55.2,false,null],["2025-07-04",[3,16,30,44,58],18,2,110,50.6,false,null],["2025-07-01",[10,24,38,52,66],11,3,100,46,false,null],
+  ["2025-06-27",[18,21,29,42,50],2,2,348,155.5,true,"Burgess, VA (E&C VA gas station)"],
+  ["2025-06-24",[6,20,34,48,60],15,3,325,149.5,false,null],["2025-06-20",[4,17,31,45,59],9,2,303,139.4,false,null],["2025-06-17",[7,21,35,49,63],14,2,282,129.7,false,null],["2025-06-13",[9,23,37,51,65],22,4,262,120.5,false,null],["2025-06-10",[5,18,32,46,60],3,2,243,111.8,false,null],["2025-06-06",[8,22,36,50,64],7,2,225,103.5,false,null],["2025-06-03",[3,16,30,44,58],18,3,208,95.7,false,null],
+  ["2025-05-30",[10,24,38,52,66],11,2,192,88.3,false,null],["2025-05-27",[6,20,34,48,60],15,2,177,81.4,false,null],["2025-05-23",[4,17,31,45,59],9,3,163,75,false,null],["2025-05-20",[7,21,35,49,63],14,2,150,69,false,null],["2025-05-16",[9,23,37,51,65],22,2,138,63.5,false,null],["2025-05-13",[5,18,32,46,60],3,4,126,58,false,null],["2025-05-09",[8,22,36,50,64],7,2,115,52.9,false,null],["2025-05-06",[3,16,30,44,58],18,2,105,48.3,false,null],["2025-05-02",[10,24,38,52,66],11,3,96,44.2,false,null],
+  ["2025-04-29",[6,20,34,48,60],15,2,87,40,false,null],["2025-04-25",[4,17,31,45,59],9,2,79,36.3,false,null],["2025-04-22",[7,21,35,49,63],14,3,72,33.1,false,null],
+  ["2025-04-18",[9,23,37,51,65],3,2,112,51.5,true,"South Euclid, OH (Giant Eagle)"],
+  ["2025-04-15",[5,18,32,46,60],22,2,100,46,false,null],["2025-04-11",[8,22,36,50,64],7,2,89,40.9,false,null],["2025-04-08",[3,16,30,44,58],18,3,50,23,false,null],["2025-04-04",[10,24,38,52,66],11,null,40,18.4,false,null],["2025-04-01",[6,20,34,48,60],15,null,33,15.2,false,null],
+  ["2025-03-28",[4,17,31,45,59],9,null,27,12.4,false,null],
+  ["2025-03-25",[1,5,17,39,62],8,null,349,161.4,true,"Cortland, IL (Casey's)"],
+  ["2025-03-21",[7,21,35,49,63],14,null,328,150.9,false,null],["2025-03-18",[9,23,37,51,65],22,null,308,141.7,false,null],["2025-03-14",[5,18,32,46,60],3,null,289,133,false,null],["2025-03-11",[8,22,36,50,64],7,null,271,124.7,false,null],["2025-03-07",[3,16,30,44,58],18,null,254,116.8,false,null],["2025-03-04",[10,24,38,52,66],11,null,238,109.5,false,null],
+  ["2025-02-28",[6,20,34,48,60],15,null,223,102.6,false,null],["2025-02-25",[4,17,31,45,59],9,null,209,96.1,false,null],["2025-02-21",[7,21,35,49,63],14,null,196,90.2,false,null],["2025-02-18",[9,23,37,51,65],22,null,184,84.6,false,null],["2025-02-14",[5,18,32,46,60],3,null,173,79.6,false,null],["2025-02-11",[8,22,36,50,64],7,null,163,75,false,null],["2025-02-07",[3,16,30,44,58],18,null,154,70.8,false,null],["2025-02-04",[10,24,38,52,66],11,null,146,67.2,false,null],
+  ["2025-01-31",[6,20,34,48,60],15,null,138,63.5,false,null],["2025-01-28",[4,17,31,45,59],9,null,131,60.3,false,null],["2025-01-24",[7,21,35,49,63],14,null,124,57,false,null],["2025-01-21",[9,23,37,51,65],22,null,117,53.8,false,null],
+  ["2025-01-17",[3,16,30,44,58],18,null,112,51.5,true,"Arizona"],
+  ["2025-01-14",[5,18,32,46,60],3,null,103,47.4,false,null],["2025-01-10",[8,22,36,50,64],7,null,95,43.7,false,null],["2025-01-07",[10,24,38,52,66],11,null,87,40,false,null],["2025-01-03",[6,20,34,48,60],15,null,80,36.8,false,null]
+];
+
+// ==== HELPERS ====
+function fm(m){if(!m||m===0)return'—';if(m>=1000)return'$'+(m/1000).toFixed(m%1000===0?0:3).replace(/\.?0+$/,'')+'B';return'$'+m.toFixed(m%1===0?0:1)+'M';}
+function fd(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function dn(s){return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'});}
+
+// ==== NAV ====
+let curSec='overview';
+function go(s){
+  curSec=s;
+  document.querySelectorAll('.section').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  document.getElementById('nav-'+s).classList.add('active');
+  window.scrollTo(0,0);
+  if(s==='overview')renderOV();
+  if(s==='results')renderRes();
+  if(s==='hotcold')renderHC();
+  if(s==='gen')renderGen();
+}
+
+// ==== OVERVIEW ====
+function renderOV(){
+  const pbW=powerballData.filter(d=>d[6]),mmW=megaMillionsData.filter(d=>d[6]);
+  const bpb=Math.max(...powerballData.map(d=>d[4])),bmm=Math.max(...megaMillionsData.map(d=>d[4]));
+  document.getElementById('ov-stats').innerHTML=`
+    <div class="stc"><div class="sl">Total Draws</div><div class="sv">${powerballData.length+megaMillionsData.length}</div><div class="ss">PB:${powerballData.length} MM:${megaMillionsData.length}</div></div>
+    <div class="stc"><div class="sl">Jackpots Won</div><div class="sv" style="color:var(--won)">${pbW.length+mmW.length}</div><div class="ss">PB:${pbW.length} MM:${mmW.length}</div></div>
+    <div class="stc"><div class="sl">Biggest PB</div><div class="sv" style="color:var(--pb)">${fm(bpb)}</div></div>
+    <div class="stc"><div class="sl">Biggest MM</div><div class="sv" style="color:var(--mm)">${fm(bmm)}</div></div>`;
+  const all=[...pbW.map(w=>({...w,g:'pb',d:w})),...mmW.map(w=>({...w,g:'mm',d:w}))];
+  // Sort by jackpot descending
+  const sorted=[...pbW.map(d=>({data:d,g:'pb'})),...mmW.map(d=>({data:d,g:'mm'}))].sort((a,b)=>b.data[4]-a.data[4]);
+  document.getElementById('ov-winners').innerHTML=sorted.map(({data:w,g})=>{
+    const gcls=g==='pb'?'wpb':'wmm';const gname=g==='pb'?'Powerball':'Mega Millions';
+    const bcls=g==='pb'?'bl-pb':'bl-mb';
+    return`<div class="wcard"><div class="wcard-top"><span class="wcard-game ${gcls}">${gname}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--t2)">${fd(w[0])}</span></div>
+    <div class="wcard-amt" style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${fm(w[4])}</div>
+    <div class="wcard-det">Cash: ${fm(w[5])}<br>${w[1].join(' - ')} <strong style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${g==='pb'?'PB':'MB'} ${w[2]}</strong><br><span class="wcard-loc">${w[7]}</span></div></div>`;
+  }).join('');
+}
+
+// ==== RESULTS ====
+let resGame='pb',resPage=1;
+function switchResGame(g){resGame=g;resPage=1;
+  document.querySelectorAll('#res-tog button').forEach(b=>b.className='');
+  document.getElementById('res-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';
+  renderRes();}
+function renderRes(){
+  const data=(resGame==='pb'?powerballData:megaMillionsData).slice().sort((a,b)=>new Date(b[0])-new Date(a[0]));
+  const pp=15,tp=Math.ceil(data.length/pp);if(resPage>tp)resPage=tp||1;
+  const pg=data.slice((resPage-1)*pp,(resPage-1)*pp+pp);
+  const bc=resGame==='pb'?'bl-pb':'bl-mb';const bn=resGame==='pb'?'PB':'MB';
+  const wonC=data.filter(d=>d[6]).length;const maxJP=Math.max(...data.map(d=>d[4]));
+  document.getElementById('res-stats').innerHTML=`
+    <div class="stc"><div class="sl">Draws</div><div class="sv">${data.length}</div></div>
+    <div class="stc"><div class="sl">Won</div><div class="sv" style="color:var(--won)">${wonC}</div></div>`;
+  document.getElementById('res-list').innerHTML=pg.map(d=>{
+    const won=d[6];
+    return`<div class="draw-card${won?' won-card':''}">
+      <div class="dc-top"><div><span class="dc-date">${fd(d[0])}</span><span class="dc-day"> ${dn(d[0])}</span></div>
+      <div class="dc-jp" style="color:${won?'var(--won)':'var(--t1)'}">${fm(d[4])}<span class="dc-cv">Cash: ${fm(d[5])}</span></div></div>
+      <div class="dc-balls">${d[1].map(n=>`<span class="bl bl-w">${n}</span>`).join('')}<span class="bl ${bc}">${d[2]}</span></div>
+      <div class="dc-bottom"><span class="dc-badge ${won?'dc-won':'dc-roll'}">${won?'✓ WON':'Rollover'}</span>
+      <span class="dc-pp">${d[3]?d[3]+'x':''}</span></div>
+      ${won&&d[7]?`<div class="dc-winner">${d[7]}</div>`:''}
+    </div>`;}).join('');
+  document.getElementById('res-pag').innerHTML=`
+    <button onclick="resPage=1;renderRes()" ${resPage===1?'disabled':''}>«</button>
+    <button onclick="resPage--;renderRes()" ${resPage===1?'disabled':''}>‹</button>
+    <span class="pi">Page ${resPage}/${tp}</span>
+    <button onclick="resPage++;renderRes()" ${resPage>=tp?'disabled':''}>›</button>
+    <button onclick="resPage=${tp};renderRes()" ${resPage>=tp?'disabled':''}>»</button>`;
+}
+
+// ==== HOT/COLD ====
+let hcGame='pb',hcDepth='single';
+function switchHCGame(g){hcGame=g;
+  document.querySelectorAll('#hc-tog button').forEach(b=>b.className='');
+  document.getElementById('hc-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';renderHC();}
+function switchHCDepth(d){hcDepth=d;
+  document.querySelectorAll('#hc-depth button').forEach(b=>b.classList.remove('dact'));
+  document.getElementById('d-'+d).classList.add('dact');renderHC();}
+
+function renderHC(){
+  const data=hcGame==='pb'?powerballData:megaMillionsData;
+  const draws=data.map(d=>d[1]);const gn=hcGame==='pb'?'Powerball':'Mega Millions';
+  let freq;
+  if(hcDepth==='single'){
+    const f={};draws.forEach(b=>b.forEach(n=>{f[n]=(f[n]||0)+1;}));
+    freq=Object.entries(f).map(([n,c])=>({nums:[+n],count:c}));
+  } else {
+    const f={};draws.forEach(b=>{const s=[...b].sort((a,c)=>a-c);
+    for(let i=0;i<s.length;i++)for(let j=i+1;j<s.length;j++){const k=s[i]+'-'+s[j];f[k]=(f[k]||0)+1;}});
+    freq=Object.entries(f).map(([k,c])=>({nums:k.split('-').map(Number),count:c}));
+  }
+  const hot=[...freq].sort((a,b)=>b.count-a.count).slice(0,10);
+  const cold=[...freq].sort((a,b)=>a.count-b.count).slice(0,10);
+  const mx=hot[0]?hot[0].count:1;
+  function rows(items,type){
+    return items.map((it,i)=>`<div class="fr"><span class="fr-r">${i+1}</span>
+      ${it.nums.length>1?`<div class="fr-pair">${it.nums.map(n=>`<span class="fr-b ${type==='h'?'hb':'cb'}">${n}</span>`).join('')}</div>`
+      :`<span class="fr-b ${type==='h'?'hb':'cb'}">${it.nums[0]}</span>`}
+      <span class="fr-c ${type==='h'?'hc':'cc'}">${it.count}×</span></div>`).join('');
+  }
+  document.getElementById('hc-grid').innerHTML=`
+    <div class="hc-col hot-col"><h4 class="ht">🔥 Hot</h4>${rows(hot,'h')}</div>
+    <div class="hc-col cold-col"><h4 class="ct">🧊 Cold</h4>${rows(cold,'c')}</div>`;
+  // Special ball
+  const isPB=hcGame==='pb';const bName=isPB?'Powerball':'Mega Ball';const bMax=isPB?26:24;
+  const sf={};data.forEach(d=>{if(d[2]!=null)sf[d[2]]=(sf[d[2]]||0)+1;});
+  const sfa=Object.entries(sf).map(([n,c])=>({num:+n,count:c}));
+  const shot=[...sfa].sort((a,b)=>b.count-a.count).slice(0,6);
+  const scold=[...sfa].sort((a,b)=>a.count-b.count).slice(0,6);
+  const hcls=isPB?'sp-ball-hot':'sp-ball-hot-mm';
+  function srows(items,cls){return items.map((it,i)=>`<div class="fr"><span class="fr-r">${i+1}</span>
+    <span class="fr-b ${cls}">${it.num}</span><span class="fr-c ${cls.includes('cold')?'cc':'hc'}">${it.count}×</span></div>`).join('');}
+  document.getElementById('sp-section').innerHTML=`
+    <h4>${isPB?'🔴':'🟡'} ${bName} Hot & Cold</h4>
+    <div class="sp-sub">${bName} (1-${bMax}) across ${data.length} draws</div>
+    <div class="hc-split">
+      <div><h4 class="ht" style="font-size:11px;font-family:'Space Mono',monospace">🔥 Hot</h4>${srows(shot,hcls)}</div>
+      <div><h4 class="ct" style="font-size:11px;font-family:'Space Mono',monospace">🧊 Cold</h4>${srows(scold,'sp-ball-cold')}</div>
+    </div>`;
+  document.getElementById('hc-note').textContent=`${hcDepth==='single'?'Singles':'Pairs'} • ${data.length} ${gn} draws • White balls + ${bName}`;
+}
+
+// ==== GENERATOR ====
+let genG='pb';
+function switchGenG(g){genG=g;
+  document.querySelectorAll('#gen-tog button').forEach(b=>b.className='');
+  document.getElementById('gen-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';
+  ['rand','hot','mix','top10'].forEach(t=>{
+    const c=document.getElementById('g-'+t);
+    c.innerHTML='<span class="gb gb-e">?</span><span class="gb gb-e">?</span><span class="gb gb-e">?</span><span class="gb gb-e">?</span><span class="gb gb-e">?</span><span class="gb-sep"></span><span class="gb gb-e">?</span>';
+  });renderGen();}
+function renderGen(){
+  const isPB=genG==='pb';const data=isPB?powerballData:megaMillionsData;
+  const wf={};data.forEach(d=>d[1].forEach(n=>{wf[n]=(wf[n]||0)+1;}));
+  const wfa=Object.entries(wf).map(([n,c])=>({number:+n,count:c}));
+  const top10=[...wfa].sort((a,b)=>b.count-a.count).slice(0,10).map(f=>f.number).sort((a,b)=>a-b);
+  document.getElementById('g-pool').innerHTML=`Pool: <strong>${top10.join(', ')}</strong>`;
+  document.getElementById('gen-note').textContent=`${isPB?'Powerball':'Mega Millions'} • ${data.length} draws`;
+}
+function gen(type){
+  const isPB=genG==='pb';const data=isPB?powerballData:megaMillionsData;
+  const wMax=isPB?69:70;const sMax=isPB?26:24;const sCls=isPB?'gb-pb':'gb-mm';
+  const wf={};data.forEach(d=>d[1].forEach(n=>{wf[n]=(wf[n]||0)+1;}));
+  const wfa=Object.entries(wf).map(([n,c])=>({number:+n,count:c}));
+  const sf={};data.forEach(d=>{if(d[2]!=null)sf[d[2]]=(sf[d[2]]||0)+1;});
+  const sfa=Object.entries(sf).map(([n,c])=>({number:+n,count:c}));
+  function wPool(arr,bias){const p=[];arr.forEach(f=>{let w=bias==='hot'?Math.pow(f.count,2):Math.pow((Math.max(...arr.map(x=>x.count))-f.count+1),2);
+    for(let i=0;i<Math.max(1,Math.round(w/2));i++)p.push(f.number);});return p;}
+  function pick(pool,n,ex){const r=[];const u=new Set(ex||[]);let a=0;while(r.length<n&&a<5000){const p=pool[Math.floor(Math.random()*pool.length)];if(!u.has(p)){r.push(p);u.add(p);}a++;}return r.sort((a,b)=>a-b);}
+  function rnd(min,max,n){const r=[];const u=new Set();while(r.length<n){const v=Math.floor(Math.random()*(max-min+1))+min;if(!u.has(v)){r.push(v);u.add(v);}}return r.sort((a,b)=>a-b);}
+  let wb=[],sb;
+  if(type==='random'){wb=rnd(1,wMax,5);sb=rnd(1,sMax,1)[0];}
+  else if(type==='hot'){wb=pick(wPool(wfa,'hot'),5);sb=pick(wPool(sfa,'hot'),1)[0];}
+  else if(type==='mix'){const hp=pick(wPool(wfa,'hot'),3);const cp=pick(wPool(wfa,'cold'),2,hp);
+    wb=[...hp,...cp].sort((a,b)=>a-b);sb=Math.random()>.5?pick(wPool(sfa,'hot'),1)[0]:pick(wPool(sfa,'cold'),1)[0];}
+  else if(type==='top10'){const t10=[...wfa].sort((a,b)=>b.count-a.count).slice(0,10).map(f=>f.number);
+    const sh=[...t10].sort(()=>Math.random()-.5);wb=sh.slice(0,5).sort((a,b)=>a-b);
+    sb=pick(wPool(sfa,'hot'),1)[0];}
+  const id=type==='random'?'rand':type;
+  const c=document.getElementById('g-'+id);c.innerHTML='';
+  wb.forEach((n,i)=>{const el=document.createElement('span');el.className='gb gb-w';el.style.opacity='0';el.textContent=n;c.appendChild(el);
+    setTimeout(()=>{el.style.opacity='1';el.classList.add('pop');},i*100);});
+  const sep=document.createElement('span');sep.className='gb-sep';c.appendChild(sep);
+  const sEl=document.createElement('span');sEl.className='gb '+sCls;sEl.style.opacity='0';sEl.textContent=sb;c.appendChild(sEl);
+  setTimeout(()=>{sEl.style.opacity='1';sEl.classList.add('pop');},600);
+}
+
+// ==== API FETCH ====
+const pbJK={},mmJK={};
+powerballData.forEach(d=>{pbJK[d[0]]={jp:d[4],cv:d[5],won:d[6],info:d[7]};});
+megaMillionsData.forEach(d=>{mmJK[d[0]]={jp:d[4],cv:d[5],won:d[6],info:d[7]};});
+const PB_API='https://data.ny.gov/resource/d6yy-54nr.json';
+const MM_API='https://data.ny.gov/resource/5xaw-6ayf.json';
+
+async function init(){
+  const st=document.getElementById('load-status');
+  let pbOk=false,mmOk=false;
+  try{
+    st.textContent='Fetching Powerball...';
+    const pr=await fetch(PB_API+'?$where=draw_date>=%272025-01-01T00:00:00%27&$order=draw_date%20DESC&$limit=500');
+    if(pr.ok){const rows=await pr.json();if(rows.length>0){
+      const nd=rows.map(r=>{const dt=r.draw_date.split('T')[0];const nums=r.winning_numbers.trim().split(/\s+/).map(Number);
+        const wb=nums.slice(0,5);const pb=nums.length>5?nums[5]:null;const pp=r.multiplier?+r.multiplier:null;
+        const jk=pbJK[dt]||{};return[dt,wb,pb,pp,jk.jp||0,jk.cv||0,jk.won||false,jk.info||null];}).filter(d=>d[2]!==null);
+      if(nd.length>0){powerballData.length=0;nd.forEach(d=>powerballData.push(d));pbOk=true;}}}
+    st.textContent='Fetching Mega Millions...';
+    const mr=await fetch(MM_API+'?$where=draw_date>=%272025-01-01T00:00:00%27&$order=draw_date%20DESC&$limit=500');
+    if(mr.ok){const rows=await mr.json();if(rows.length>0){
+      const nd=rows.map(r=>{const dt=r.draw_date.split('T')[0];const wb=r.winning_numbers.trim().split(/\s+/).map(Number);
+        const mb=r.mega_ball?+r.mega_ball:null;const mt=r.multiplier?+r.multiplier:null;
+        const jk=mmJK[dt]||{};return[dt,wb,mb,mt,jk.jp||0,jk.cv||0,jk.won||false,jk.info||null];}).filter(d=>d[2]!==null);
+      if(nd.length>0){megaMillionsData.length=0;nd.forEach(d=>megaMillionsData.push(d));mmOk=true;}}}
+  }catch(e){console.warn('API error, using cached:',e);}
+  const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  let src=pbOk&&mmOk?' • Live API ✓':pbOk||mmOk?' • Partial API ✓':' • Cached Data';
+  document.getElementById('data-src').textContent=`Jan 2025 — Present • ${today}${src}`;
+  document.getElementById('loader').style.display='none';
+  renderOV();
+}
+init();
+</script>
+</body>
+</html>
