@@ -71,6 +71,27 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;
   font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all .2s;}
 .depth-tog .dact{background:var(--purple);color:#fff;}
 
+/* Current Jackpot Hero - Mobile */
+.cur-jp{position:relative;border-radius:18px;padding:24px 16px;margin:8px 0 16px;text-align:center;
+  border:1px solid var(--border);overflow:hidden;}
+.cur-jp.pb-cj{background:radial-gradient(ellipse at center,rgba(226,54,54,.22) 0%,var(--card) 70%);
+  border-color:rgba(226,54,54,.35);box-shadow:0 6px 30px rgba(226,54,54,.18);}
+.cur-jp.mm-cj{background:radial-gradient(ellipse at center,rgba(212,168,67,.22) 0%,var(--card) 70%);
+  border-color:rgba(212,168,67,.35);box-shadow:0 6px 30px rgba(212,168,67,.18);}
+.cj-lab{font-family:'Space Mono',monospace;font-size:10px;color:var(--t2);text-transform:uppercase;
+  letter-spacing:2px;margin-bottom:8px;}
+.cj-amt{font-family:'Playfair Display',serif;font-weight:900;font-size:56px;line-height:1;
+  letter-spacing:-1px;margin-bottom:10px;}
+.pb-cj .cj-amt{background:linear-gradient(135deg,#ff6b6b 0%,#ef4444 50%,#dc2626 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.mm-cj .cj-amt{background:linear-gradient(135deg,#fcd34d 0%,#f59e0b 50%,#d97706 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.cj-info{font-family:'Space Mono',monospace;font-size:11px;color:var(--t2);}
+.cj-info span{color:var(--t1);font-weight:700;}
+
+.sec-h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:800;
+  margin:18px 0 10px;padding-left:4px;display:flex;align-items:center;gap:6px;}
+
 /* Stat Cards */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .stc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
@@ -204,25 +225,34 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;
 </div>
 
 <!-- OVERVIEW -->
-<div class="section active" id="sec-overview">
-  <div class="stats" id="ov-stats"></div>
-  <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin:12px 0 8px;padding-left:4px;">🏆 Jackpot Winners</h3>
-  <div class="game-tog" id="ov-tog">
-    <button class="act-pb" id="ov-pb" onclick="switchOVGame('pb')">Powerball</button>
-    <button id="ov-mm" onclick="switchOVGame('mm')">Mega Millions</button>
+<!-- POWERBALL -->
+<div class="section active" id="sec-pb">
+  <div class="cur-jp pb-cj">
+    <div class="cj-lab">🔴 Current Powerball Jackpot</div>
+    <div class="cj-amt" id="pb-cur-jp">—</div>
+    <div class="cj-info">Cash: <span id="pb-cur-cv">—</span> • <span id="pb-cur-nd">—</span></div>
   </div>
-  <div id="ov-winners"></div>
+  <div class="stats" id="pb-stats"></div>
+  <h3 class="sec-h3">📋 Recent Draws</h3>
+  <div id="pb-list"></div>
+  <div class="pag" id="pb-pag"></div>
+  <h3 class="sec-h3">🏆 Powerball Jackpot Winners</h3>
+  <div id="pb-winners"></div>
 </div>
 
-<!-- RESULTS -->
-<div class="section" id="sec-results">
-  <div class="game-tog" id="res-tog">
-    <button class="act-pb" id="res-pb" onclick="switchResGame('pb')">Powerball</button>
-    <button id="res-mm" onclick="switchResGame('mm')">Mega Millions</button>
+<!-- MEGA MILLIONS -->
+<div class="section" id="sec-mm">
+  <div class="cur-jp mm-cj">
+    <div class="cj-lab">🟡 Current Mega Millions Jackpot</div>
+    <div class="cj-amt" id="mm-cur-jp">—</div>
+    <div class="cj-info">Cash: <span id="mm-cur-cv">—</span> • <span id="mm-cur-nd">—</span></div>
   </div>
-  <div class="stats" id="res-stats"></div>
-  <div id="res-list"></div>
-  <div class="pag" id="res-pag"></div>
+  <div class="stats" id="mm-stats"></div>
+  <h3 class="sec-h3">📋 Recent Draws</h3>
+  <div id="mm-list"></div>
+  <div class="pag" id="mm-pag"></div>
+  <h3 class="sec-h3">🏆 Mega Millions Jackpot Winners</h3>
+  <div id="mm-winners"></div>
 </div>
 
 <!-- HOT/COLD -->
@@ -276,11 +306,11 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;
 
 <!-- BOTTOM NAV -->
 <nav class="bnav">
-  <button class="bnav-btn active" id="nav-overview" onclick="go('overview')">
-    <span class="nav-icon">📊</span>Overview<span class="nav-dot"></span>
+  <button class="bnav-btn active" id="nav-pb" onclick="go('pb')">
+    <span class="nav-icon">🔴</span>Powerball<span class="nav-dot"></span>
   </button>
-  <button class="bnav-btn" id="nav-results" onclick="go('results')">
-    <span class="nav-icon">🎱</span>Results<span class="nav-dot"></span>
+  <button class="bnav-btn" id="nav-mm" onclick="go('mm')">
+    <span class="nav-icon">🟡</span>Mega M.<span class="nav-dot"></span>
   </button>
   <button class="bnav-btn" id="nav-hotcold" onclick="go('hotcold')">
     <span class="nav-icon">🔥</span>Hot/Cold<span class="nav-dot"></span>
@@ -350,8 +380,34 @@ function fm(m){if(!m||m===0)return'—';if(m>=1000)return'$'+(m/1000).toFixed(m%
 function fd(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function dn(s){return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'});}
 
+// ==== CURRENT JACKPOT (Cloudflare Worker scrapes NC Lottery, fallback if worker fails) ====
+const WORKER_URL='https://magayo-proxy.fwingate3rd.workers.dev/';
+
+let currentJackpots={
+  pb:{amount:194,cash:87.1,nextDraw:'Sat, Apr 11'},
+  mm:{amount:80,cash:36.8,nextDraw:'Tue, Apr 14'}
+};
+
+async function fetchCurrentJackpots(){
+  try{
+    const pbR=await fetch(`${WORKER_URL}?game=powerball`);
+    if(pbR.ok){const pb=await pbR.json();if(pb.jackpot_millions){
+      currentJackpots.pb.amount=pb.jackpot_millions;
+      currentJackpots.pb.cash=pb.cash_millions||Math.round(pb.jackpot_millions*0.46*10)/10;
+      if(pb.next_drawing)currentJackpots.pb.nextDraw=pb.next_drawing;
+    }}
+    const mmR=await fetch(`${WORKER_URL}?game=megamillions`);
+    if(mmR.ok){const mm=await mmR.json();if(mm.jackpot_millions){
+      currentJackpots.mm.amount=mm.jackpot_millions;
+      currentJackpots.mm.cash=mm.cash_millions||Math.round(mm.jackpot_millions*0.46*10)/10;
+      if(mm.next_drawing)currentJackpots.mm.nextDraw=mm.next_drawing;
+    }}
+    console.log('✅ Live jackpots:',JSON.parse(JSON.stringify(currentJackpots)));
+  }catch(e){console.warn('❌ Worker fetch failed:',e);}
+}
+
 // ==== NAV ====
-let curSec='overview';
+let curSec='pb';
 function go(s){
   curSec=s;
   document.querySelectorAll('.section').forEach(e=>e.classList.remove('active'));
@@ -359,56 +415,45 @@ function go(s){
   document.getElementById('sec-'+s).classList.add('active');
   document.getElementById('nav-'+s).classList.add('active');
   window.scrollTo(0,0);
-  if(s==='overview')renderOV();
-  if(s==='results')renderRes();
+  if(s==='pb')renderPB();
+  if(s==='mm')renderMM();
   if(s==='hotcold')renderHC();
   if(s==='gen')renderGen();
 }
 
-// ==== OVERVIEW ====
-let ovGame='pb';
-function switchOVGame(g){ovGame=g;
-  document.querySelectorAll('#ov-tog button').forEach(b=>b.className='');
-  document.getElementById('ov-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';
-  renderOV();}
-function renderOV(){
-  const pbW=powerballData.filter(d=>d[6]),mmW=megaMillionsData.filter(d=>d[6]);
-  const bpb=Math.max(...powerballData.map(d=>d[4])),bmm=Math.max(...megaMillionsData.map(d=>d[4]));
-  document.getElementById('ov-stats').innerHTML=`
-    <div class="stc"><div class="sl">Total Draws</div><div class="sv">${powerballData.length+megaMillionsData.length}</div><div class="ss">PB:${powerballData.length} MM:${megaMillionsData.length}</div></div>
-    <div class="stc"><div class="sl">Jackpots Won</div><div class="sv" style="color:var(--won)">${pbW.length+mmW.length}</div><div class="ss">PB:${pbW.length} MM:${mmW.length}</div></div>
-    <div class="stc"><div class="sl">Biggest PB</div><div class="sv" style="color:var(--pb)">${fm(bpb)}</div></div>
-    <div class="stc"><div class="sl">Biggest MM</div><div class="sv" style="color:var(--mm)">${fm(bmm)}</div></div>`;
-  const isPB=ovGame==='pb';
-  const winners=isPB?pbW:mmW;
-  const g=isPB?'pb':'mm';
-  const sorted=[...winners].sort((a,b)=>b[4]-a[4]);
-  document.getElementById('ov-winners').innerHTML=sorted.length===0
-    ?'<div style="text-align:center;color:var(--t3);padding:20px;font-size:13px;">No jackpot winners found</div>'
-    :sorted.map(w=>{
-    const gcls=g==='pb'?'wpb':'wmm';const gname=g==='pb'?'Powerball':'Mega Millions';
-    return`<div class="wcard"><div class="wcard-top"><span class="wcard-game ${gcls}">${gname}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--t2)">${fd(w[0])}</span></div>
-    <div class="wcard-amt" style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${fm(w[4])}</div>
-    <div class="wcard-det">Cash: ${fm(w[5])}<br>${w[1].join(' - ')} <strong style="color:${g==='pb'?'var(--pb)':'var(--mm)'}">${g==='pb'?'PB':'MB'} ${w[2]}</strong><br><span class="wcard-loc">${w[7]}</span></div></div>`;
-  }).join('');
-}
+// ==== POWERBALL & MEGA MILLIONS RENDER ====
+let pbPage=1,mmPage=1;
 
-// ==== RESULTS ====
-let resGame='pb',resPage=1;
-function switchResGame(g){resGame=g;resPage=1;
-  document.querySelectorAll('#res-tog button').forEach(b=>b.className='');
-  document.getElementById('res-'+(g==='pb'?'pb':'mm')).className=g==='pb'?'act-pb':'act-mm';
-  renderRes();}
-function renderRes(){
-  const data=(resGame==='pb'?powerballData:megaMillionsData).slice().sort((a,b)=>new Date(b[0])-new Date(a[0]));
-  const pp=15,tp=Math.ceil(data.length/pp);if(resPage>tp)resPage=tp||1;
-  const pg=data.slice((resPage-1)*pp,(resPage-1)*pp+pp);
-  const bc=resGame==='pb'?'bl-pb':'bl-mb';const bn=resGame==='pb'?'PB':'MB';
-  const wonC=data.filter(d=>d[6]).length;const maxJP=Math.max(...data.map(d=>d[4]));
-  document.getElementById('res-stats').innerHTML=`
+function renderGameSection(game){
+  const isPB=game==='pb';
+  const data=isPB?powerballData:megaMillionsData;
+  const cj=isPB?currentJackpots.pb:currentJackpots.mm;
+  const prefix=isPB?'pb':'mm';
+  const bc=isPB?'bl-pb':'bl-mb';
+  const colorVar=isPB?'var(--pb)':'var(--mm)';
+  
+  // Update current jackpot block
+  document.getElementById(prefix+'-cur-jp').textContent='$'+cj.amount+' Million';
+  document.getElementById(prefix+'-cur-cv').textContent='$'+cj.cash+'M';
+  document.getElementById(prefix+'-cur-nd').textContent='Next: '+cj.nextDraw;
+  
+  // Stats
+  const wonC=data.filter(d=>d[6]).length;
+  const maxJP=Math.max(...data.map(d=>d[4]));
+  const avgJP=data.reduce((s,d)=>s+d[4],0)/data.length;
+  document.getElementById(prefix+'-stats').innerHTML=`
     <div class="stc"><div class="sl">Draws</div><div class="sv">${data.length}</div></div>
-    <div class="stc"><div class="sl">Won</div><div class="sv" style="color:var(--won)">${wonC}</div></div>`;
-  document.getElementById('res-list').innerHTML=pg.map(d=>{
+    <div class="stc"><div class="sl">Won</div><div class="sv" style="color:var(--won)">${wonC}</div></div>
+    <div class="stc"><div class="sl">Largest</div><div class="sv" style="color:${colorVar}">${fm(maxJP)}</div></div>
+    <div class="stc"><div class="sl">Avg</div><div class="sv">${fm(avgJP)}</div></div>`;
+  
+  // Draws list
+  const sorted=[...data].sort((a,b)=>new Date(b[0])-new Date(a[0]));
+  const pp=15;const tp=Math.ceil(sorted.length/pp);
+  let curPage=isPB?pbPage:mmPage;
+  if(curPage>tp){curPage=tp||1;if(isPB)pbPage=curPage;else mmPage=curPage;}
+  const pg=sorted.slice((curPage-1)*pp,(curPage-1)*pp+pp);
+  document.getElementById(prefix+'-list').innerHTML=pg.map(d=>{
     const won=d[6];
     return`<div class="draw-card${won?' won-card':''}">
       <div class="dc-top"><div><span class="dc-date">${fd(d[0])}</span><span class="dc-day"> ${dn(d[0])}</span></div>
@@ -418,13 +463,29 @@ function renderRes(){
       <span class="dc-pp">${d[3]?d[3]+'x':''}</span></div>
       ${won&&d[7]?`<div class="dc-winner">${d[7]}</div>`:''}
     </div>`;}).join('');
-  document.getElementById('res-pag').innerHTML=`
-    <button onclick="resPage=1;renderRes()" ${resPage===1?'disabled':''}>«</button>
-    <button onclick="resPage--;renderRes()" ${resPage===1?'disabled':''}>‹</button>
-    <span class="pi">Page ${resPage}/${tp}</span>
-    <button onclick="resPage++;renderRes()" ${resPage>=tp?'disabled':''}>›</button>
-    <button onclick="resPage=${tp};renderRes()" ${resPage>=tp?'disabled':''}>»</button>`;
+  
+  const pageFn=isPB?'pbPage':'mmPage';
+  const renderFn=isPB?'renderPB':'renderMM';
+  document.getElementById(prefix+'-pag').innerHTML=`
+    <button onclick="${pageFn}=1;${renderFn}()" ${curPage===1?'disabled':''}>«</button>
+    <button onclick="${pageFn}--;${renderFn}()" ${curPage===1?'disabled':''}>‹</button>
+    <span class="pi">Page ${curPage}/${tp}</span>
+    <button onclick="${pageFn}++;${renderFn}()" ${curPage>=tp?'disabled':''}>›</button>
+    <button onclick="${pageFn}=${tp};${renderFn}()" ${curPage>=tp?'disabled':''}>»</button>`;
+  
+  // Winners list
+  const wins=data.filter(d=>d[6]).sort((a,b)=>b[4]-a[4]);
+  const gcls=isPB?'wpb':'wmm';
+  const gname=isPB?'Powerball':'Mega Millions';
+  const ballLabel=isPB?'PB':'MB';
+  document.getElementById(prefix+'-winners').innerHTML=wins.length===0
+    ?'<div style="text-align:center;color:var(--t3);padding:20px;font-size:13px;">No jackpot winners yet</div>'
+    :wins.map(w=>`<div class="wcard"><div class="wcard-top"><span class="wcard-game ${gcls}">${gname}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--t2)">${fd(w[0])}</span></div>
+      <div class="wcard-amt" style="color:${colorVar}">${fm(w[4])}</div>
+      <div class="wcard-det">Cash: ${fm(w[5])}<br>${w[1].join(' - ')} <strong style="color:${colorVar}">${ballLabel} ${w[2]}</strong><br><span class="wcard-loc">${w[7]}</span></div></div>`).join('');
 }
+function renderPB(){renderGameSection('pb');}
+function renderMM(){renderGameSection('mm');}
 
 // ==== HOT/COLD ====
 let hcGame='pb',hcDepth='single';
@@ -553,7 +614,8 @@ async function init(){
   let src=pbOk&&mmOk?' • Live API ✓':pbOk||mmOk?' • Partial API ✓':' • Cached Data';
   document.getElementById('data-src').textContent=`Jan 2025 — Present • ${today}${src}`;
   document.getElementById('loader').style.display='none';
-  renderOV();
+  await fetchCurrentJackpots();
+  renderPB();
 }
 init();
 </script>
